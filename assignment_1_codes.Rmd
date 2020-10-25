@@ -1,0 +1,287 @@
+---
+title: "Assignment_1_Codes"
+author: "Xingya,Wang"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Q3
+
+## part a
+
+```{r}
+set.seed(13)
+size=500
+#Simulate z1, z2 and z3
+z1 <- rnorm(size)
+z2 <- rnorm(size)
+z3 <- rnorm(size)
+#Simulate y1 and y2
+y1 <- 1+z1
+y2 <- 5+2*z1+z2
+#Simulate r
+a=2
+b=0
+condition <- a*(y1-1)+b*(y2-5)+z3
+r=rep(1,size)
+for(i in c(1:size)) {
+  if(condition[i]<0){
+    r[i]=0
+  }
+}
+
+y2_completed <- y2
+y2_observed <- y2[r==1]
+
+#Construct a data frame for the original simulation
+ori_y=data.frame(y1,y2)
+#Construct a data frame with NA in y2
+y2_miss=ifelse(r==0,NA,y2)
+miss_y=data.frame(y1,y2_miss)
+
+#Display the marginal distribution
+plot(density(y2_completed),lwd=2,col="blue",xlab = "Y_2",main = "MAR",ylim=c(0,0.25),xlim=c(-2,14))
+lines(density(y2_observed),lwd=2,col="red")
+legend(9,0.25,legend = c("Complete data","Observed data"),col = c("blue","red"),lty = c(1,1),lwd=c(2,2),cex=0.8)
+
+n <- length(y2)
+n_obs_3a <- length(y2_observed)
+index_3a <- rep("Y2_comp", n + n_obs_3a)
+index_3a[(n + 1):(n + n_obs_3a)] <- "Y2_obs"
+index1_3a <- factor(index_3a, levels = c("Y2_comp", "Y2_obs"))
+Y2boxmar <- c(y2, y2_observed)
+boxplot(Y2boxmar ~ index1_3a, boxwex = 0.25, col = "grey", cex.lab = 0.8, cex.axis = 1.2,
+ylab = expression(Y[2]), xlab = "MAR")
+
+
+par(mfrow=c(1,2))
+hist(y2_completed,main = "Complete data",breaks = 20,xlab="Y_2")
+abline(v=mean(y2_completed),col="red",lwd=2)
+hist(y2_observed,main = "Observed data",breaks = 20,xlab="Y_2")
+abline(v=mean(y2_observed),col="red",lwd=2)
+par(mfrow=c(1,2))
+boxplot(y2_completed,main = "Complete data")
+boxplot(y2_observed,main = "Observed data")
+
+```
+
+## part b
+
+```{r}
+fity2 <- lm(miss_y$y2_miss~miss_y$y1)
+summary(fity2)
+predsri <- predict(fity2,newdata = miss_y)+rnorm(size,0,summary(fity2)$sigma)
+y2sri <- ifelse(is.na(miss_y$y2_miss)==TRUE,predsri,miss_y$y2_miss)
+
+#Display the marginal distribution
+plot(density(y2_completed),lwd=2,col="blue",xlab = "Y_2",main = "SRI",ylim=c(0,0.25),xlim=c(-2,14))
+lines(density(y2sri),lwd=2,col="red")
+legend(9,0.25,legend = c("Original data","Completed data"),col = c("blue","red"),lty = c(1,1),lwd=c(2,2),cex=0.8)
+
+n <- length(y2)
+n_obs_3b <- length(y2sri)
+index_3b <- rep("Y2_original", n + n_obs_3b)
+index_3b[(n + 1):(n + n_obs_3b)] <- "Y2_completed"
+index1_3b <- factor(index_3b, levels = c("Y2_original", "Y2_completed"))
+Y2boxsri <- c(y2, y2sri)
+boxplot(Y2boxsri ~ index1_3b, boxwex = 0.25, col = "grey", cex.lab = 0.8, cex.axis = 1.2,
+ylab = expression(Y[2]), xlab = "SRI")
+
+
+par(mfrow=c(2,2))
+hist(y2_completed,main = "Complete data",breaks = 20)
+abline(v=mean(y2_completed),col="red",lwd=2)
+hist(y2sri,main = "Completed data after imputation",breaks = 20)
+abline(v=mean(y2sri),col="red",lwd=2)
+boxplot(y2_completed,main = "Complete data")
+boxplot(y2sri,main = "Completed data after imputation")
+```
+
+## part c
+
+```{r}
+#Simulate r with new a and b given in part c
+a_c=0
+b_c=2
+condition_c <- a_c*(y1-1)+b_c*(y2-5)+z3
+r_c=rep(1,size)
+for(i in c(1:size)) {
+  if(condition_c[i]<0){
+    r_c[i]=0
+  }
+}
+
+y2_completed <- y2
+y2_observed_c <- y2[r_c==1]
+
+#Display the marginal distribution with new a and b given in part c
+plot(density(y2_completed),lwd=2,col="blue",xlab = "Y_2",main = "MNAR",ylim=c(0,0.35),xlim=c(-2,14))
+lines(density(y2_observed_c),lwd=2,col="red")
+legend(9,0.35,legend = c("Complete data","Observed data"),col = c("blue","red"),lty = c(1,1),lwd=c(2,2),cex=0.8)
+
+n <- length(y2)
+n_obs_3c <- length(y2_observed_c)
+index_3c <- rep("Y2_comp", n + n_obs_3c)
+index_3c[(n + 1):(n + n_obs_3c)] <- "Y2_obs"
+index1_3c <- factor(index_3c, levels = c("Y2_comp", "Y2_obs"))
+Y2boxmnar <- c(y2, y2_observed_c)
+boxplot(Y2boxmnar ~ index1_3c, boxwex = 0.25, col = "grey", cex.lab = 0.8, cex.axis = 1.2,
+ylab = expression(Y[2]), xlab = "MNAR")
+
+par(mfrow=c(2,2))
+hist(y2_completed,main = "Complete data",breaks = 20)
+abline(v=mean(y2_completed),col="red",lwd=2)
+hist(y2_observed,main = "Observed data",breaks = 20)
+abline(v=mean(y2_observed_c),col="red",lwd=2)
+boxplot(y2_completed,main = "Complete data")
+boxplot(y2_observed_c,main = "Observed data")
+
+#Construct a data frame with NA in y2
+y2_miss_c=ifelse(r_c==0,NA,y2)
+miss_y_c=data.frame(y1,y2_miss_c)
+```
+
+## part d
+
+```{r}
+fity2_c <- lm(miss_y_c$y2_miss_c~miss_y_c$y1)
+summary(fity2_c)
+predsri_c <- predict(fity2_c,newdata = miss_y_c)+rnorm(size,0,summary(fity2_c)$sigma)
+y2sri_c <- ifelse(is.na(miss_y_c$y2_miss_c)==TRUE,predsri_c,miss_y_c$y2_miss_c)
+
+#Display the marginal distribution
+plot(density(y2_completed),lwd=2,col="blue",xlab = "Y_2",main = "SRI",ylim=c(0,0.26),xlim=c(-2,14))
+lines(density(y2sri_c),lwd=2,col="red")
+legend(9,0.25,legend = c("Original data","Completed data"),col = c("blue","red"),lty = c(1,1),lwd=c(2,2),cex=0.8)
+
+n <- length(y2)
+n_obs_3d <- length(y2sri_c)
+index_3d <- rep("Y2_original", n + n_obs_3d)
+index_3d[(n + 1):(n + n_obs_3d)] <- "Y2_completed"
+index1_3d <- factor(index_3d, levels = c("Y2_original", "Y2_completed"))
+Y2boxsri_d <- c(y2, y2sri_c)
+boxplot(Y2boxsri_d ~ index1_3d, boxwex = 0.25, col = "grey", cex.lab = 0.8, cex.axis = 1.2,
+ylab = expression(Y[2]), xlab = "SRI")
+
+
+par(mfrow=c(2,2))
+hist(y2_completed,main = "Complete data",breaks = 20)
+abline(v=mean(y2_completed),col="red",lwd=2)
+hist(y2sri_c,main = "Completed data after imputation",breaks = 20)
+abline(v=mean(y2sri_c),col="red",lwd=2)
+boxplot(y2_completed,main = "Complete data")
+boxplot(y2sri_c,main = "Completed data after imputation")
+```
+
+# Q4
+## Import data
+
+```{r}
+load("D:/学习资源/a研究生/IDA/databp.Rdata")
+```
+
+# part a
+
+```{r}
+mean_recovtime <- mean(databp$recovtime,na.rm = TRUE)
+se_recovtime <- sd(databp$recovtime,na.rm = TRUE)/sqrt(length(databp$recovtime)-3)
+cor_matrix <- cor(databp,use="complete.obs",method = "pearson")
+cor_dose_recov <- cor_matrix[1,3]
+cor_bloodp_recov <- cor_matrix[2,3]
+mean_recovtime;se_recovtime
+cor_dose_recov;cor_bloodp_recov
+
+```
+
+# part b
+
+```{r}
+recovtime_mi <- ifelse(is.na(databp$recovtime),mean_recovtime,databp$recovtime)
+mean_recovtime_mi <- mean(recovtime_mi,na.rm = TRUE)
+se_recovtime_mi <- sd(recovtime_mi,na.rm = TRUE)/sqrt(length(recovtime_mi))
+cor_dose_recov_mi <- cor(recovtime_mi,databp$logdose,use="complete.obs",method = "pearson")
+cor_bloodp_recov_mi <- cor(recovtime_mi,databp$bloodp,use="complete.obs",method = "pearson")
+mean_recovtime_mi;se_recovtime_mi
+cor_dose_recov_mi;cor_bloodp_recov_mi
+```
+
+# part c
+
+```{r}
+fit_recovtime <- lm(recovtime~bloodp+logdose,data = databp)
+summary(fit_recovtime)
+pred_mri <- predict(fit_recovtime,newdata = databp)
+recovtime_mri <- ifelse(is.na(databp$recovtime)==TRUE,pred_mri,databp$recovtime)
+mean_recovtime_mri <- mean(recovtime_mri,na.rm = TRUE)
+se_recovtime_mri <- sd(recovtime_mri,na.rm = TRUE)/sqrt(length(recovtime_mri))
+cor_dose_recov_mri <- cor(recovtime_mri,databp$logdose,use="complete.obs",method = "pearson")
+cor_bloodp_recov_mri <- cor(recovtime_mri,databp$bloodp,use="complete.obs",method = "pearson")
+mean_recovtime_mri;se_recovtime_mri
+cor_dose_recov_mri;cor_bloodp_recov_mri
+```
+
+# part d
+
+```{r}
+set.seed(13)
+pred_sri <- predict(fit_recovtime,newdata = databp)+rnorm(length(databp$recovtime),0,sd=summary(fit_recovtime)$sigma)
+recovtime_sri <- ifelse(is.na(databp$recovtime)==TRUE,pred_sri,databp$recovtime)
+mean_recovtime_sri <- mean(recovtime_sri,na.rm = TRUE)
+se_recovtime_sri <- sd(recovtime_sri,na.rm = TRUE)/sqrt(length(recovtime_sri))
+cor_dose_recov_sri <- cor(recovtime_sri,databp$logdose,use="complete.obs",method = "pearson")
+cor_bloodp_recov_sri <- cor(recovtime_sri,databp$bloodp,use="complete.obs",method = "pearson")
+mean_recovtime_sri;se_recovtime_sri
+cor_dose_recov_sri;cor_bloodp_recov_sri
+
+```
+
+# part e
+
+```{r}
+#3 subjects containing NA:4,10 and 22.
+donor4_num=1
+min_diff4=100
+for (i in c(1:length(databp$recovtime))[-4]) {
+  diff4=(pred_mri[4]-pred_mri[i])^2
+  if(diff4<min_diff4){
+    min_diff4=diff4
+    donor4_num=i
+  }
+}
+
+donor10_num=1
+min_diff10=100
+for (i in c(1:length(databp$recovtime))[-10]) {
+  diff10=(pred_mri[10]-pred_mri[i])^2
+  if(diff10<min_diff10){
+    min_diff10=diff10
+    donor10_num=i
+  }
+}  
+
+donor22_num=1
+min_diff22=100
+for (i in c(1:length(databp$recovtime))[-22]) {
+  diff22=(pred_mri[22]-pred_mri[i])^2
+  if(diff22<min_diff22){
+    min_diff22=diff22
+    donor22_num=i
+  }
+}  
+
+recovtime_hd <- databp$recovtime
+recovtime_hd[4] <- recovtime_hd[donor4_num]
+recovtime_hd[10] <- recovtime_hd[donor10_num]
+recovtime_hd[22] <- recovtime_hd[donor22_num]
+
+mean_recovtime_hd <- mean(recovtime_hd,na.rm = TRUE)
+se_recovtime_hd <- sd(recovtime_hd,na.rm = TRUE)/sqrt(length(recovtime_hd))
+cor_dose_recov_hd <- cor(recovtime_hd,databp$logdose,use="complete.obs",method = "pearson")
+cor_bloodp_recov_hd <- cor(recovtime_hd,databp$bloodp,use="complete.obs",method = "pearson")
+mean_recovtime_hd;se_recovtime_hd
+cor_dose_recov_hd;cor_bloodp_recov_hd
+```
+
